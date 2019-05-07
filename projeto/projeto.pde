@@ -1,10 +1,9 @@
-PShape can;
-float angle;
-PShader colorShader;
+import peasy.*;
+
+int camMode = 0;
 
 void setup() {
   fullScreen(P3D);
-  //can = createCan(100, 200, 32);
 }
 
 void draw() {
@@ -13,10 +12,18 @@ void draw() {
   background(0);
 
   translate(width/2, height/2);
-  camera(0.0, -550.0, 20.0, 0.0, 0.0, 0.0, 0, -1, 0);
+  
+  if (camMode == 0) {
+    // Vista estatica
+    camera(500, 0, 10 * u, 0.0, 0.0, 0.0, 1, 0, 0);
+  } else if (camMode == 1) {
+    // Vista dinamica
+    camera(60 * u * sin(2 * PI * mouseX / width), 60 * u * cos(2 * PI * mouseX / width), 2.2 * height / 5 - mouseY / 2, 0.0, 0.0, 10 * u, 0, 0, -1);  
+  }
+
   lights();
   fill(255);
-  noStroke();
+  stroke(155);
   
   drawCylinder(360, 21 * u, 21 * u, 3 * u);
   
@@ -42,8 +49,9 @@ void draw() {
     translate(x[i], y[i], 3 * u);
     drawCylinder(360, 3 * u, 3 * u, 2.5 * u);
     translate(0, 0, 2 * u);
+    noStroke();
     sphere(2 * u);
-    
+    stroke(155);
     popMatrix();
   }
 }
@@ -70,6 +78,7 @@ void drawCylinder( int sides, float r1, float r2, float h)
   }
   endShape(CLOSE);
   // draw body
+  noStroke();
   beginShape(TRIANGLE_STRIP);
   for (int i = 0; i < sides + 1; i++) {
     float x1 = cos( radians( i * angle ) ) * r1;
@@ -80,4 +89,14 @@ void drawCylinder( int sides, float r1, float r2, float h)
     vertex( x2, y2, h);
   }
   endShape(CLOSE);
-} 
+  stroke(155);
+}
+
+void keyPressed() {
+  if (key == '1') {
+    if (camMode  >= 1)
+      camMode = 0;
+    else
+      camMode++;
+  }
+}
