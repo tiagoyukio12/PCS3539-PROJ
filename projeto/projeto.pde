@@ -13,12 +13,12 @@ void draw() {
   background(0);
 
   translate(width/2, height/2);
-  camera(.0, -250.0, 450.0, 0.0, 0.0, 0.0, 0, -1, 0);
+  camera(0.0, -550.0, 20.0, 0.0, 0.0, 0.0, 0, -1, 0);
   lights();
   fill(255);
   noStroke();
   
-  drawCylinder(360, 21 * u, 21 * u, 2.5 * u);
+  drawCylinder(360, 21 * u, 21 * u, 3 * u);
   
   float[] x = new float[6];
   float[] y = new float[6];
@@ -39,10 +39,11 @@ void draw() {
   
   for (int i = 0; i < 6; i++) {
     pushMatrix();
-    translate(x[i], y[i], 6 * u);
+    translate(x[i], y[i], 3 * u);
     drawCylinder(360, 3 * u, 3 * u, 2.5 * u);
-    translate(0, 0, 1.25 * u);
+    translate(0, 0, 2 * u);
     sphere(2 * u);
+    
     popMatrix();
   }
 }
@@ -52,13 +53,12 @@ void draw() {
 void drawCylinder( int sides, float r1, float r2, float h)
 {
   float angle = 360 / sides;
-  float halfHeight = h / 2;
   // top
   beginShape();
   for (int i = 0; i < sides; i++) {
     float x = cos( radians( i * angle ) ) * r1;
     float y = sin( radians( i * angle ) ) * r1;
-    vertex( x, y, -halfHeight);
+    vertex( x, y, 0);
   }
   endShape(CLOSE);
   // bottom
@@ -66,7 +66,7 @@ void drawCylinder( int sides, float r1, float r2, float h)
   for (int i = 0; i < sides; i++) {
     float x = cos( radians( i * angle ) ) * r2;
     float y = sin( radians( i * angle ) ) * r2;
-    vertex( x, y, halfHeight);
+    vertex( x, y, h);
   }
   endShape(CLOSE);
   // draw body
@@ -76,8 +76,8 @@ void drawCylinder( int sides, float r1, float r2, float h)
     float y1 = sin( radians( i * angle ) ) * r1;
     float x2 = cos( radians( i * angle ) ) * r2;
     float y2 = sin( radians( i * angle ) ) * r2;
-    vertex( x1, y1, -halfHeight);
-    vertex( x2, y2, halfHeight);
+    vertex( x1, y1, 0);
+    vertex( x2, y2, h);
   }
   endShape(CLOSE);
 } 
