@@ -10,7 +10,8 @@ private final float UPPER_LEG_RADIUS = 1 * UNIT;
 private final float LENGTH_INCREMENT = 0.5 * UNIT;
 private final float ANGLE_INCREMENT = PI / 360;
 
-int camMode = 0;
+String mode = "passive";
+int camMode = 1;
 int legSelect = 0;
 float[] upperLegLengths = new float[6];
 float[] upperLegIncrement = new float[6];
@@ -18,6 +19,12 @@ float[] azimuths = new float[6];
 float[] azimuthIncrement = new float[6];
 float[] elevations = new float[6];
 float[] elevationIncrement = new float[6];
+
+float[] platPos = new float[3];
+float[] platPosIncrement = new float[3];
+float[] platRot = new float[3];
+float[] platRotIncrement = new float[3];
+
 
 void setup() {
   upperLegLengths[0] = 5 * UNIT;
@@ -40,6 +47,9 @@ void setup() {
   elevations[3] = PI / 2;
   elevations[4] = PI / 2;
   elevations[5] = PI / 2;
+  
+  platPos[2] = BASE_HEIGHT + JOINT_HEIGHT / 2 + LOWER_LEG_HEIGHT + upperLegLengths[0];
+  
   fullScreen(P3D);
 }
 
@@ -90,19 +100,75 @@ void draw() {
     popMatrix();
   }
   
-  updateLegs();
+  updateParams(x, y);
   drawLegs(x, y);
+  drawPlatform();
 }
 
-void updateLegs() {
-  if (upperLegLengths[legSelect] + upperLegIncrement[legSelect] >= 0)
-    upperLegLengths[legSelect] += upperLegIncrement[legSelect];
+void updateParams(float[] x, float[] y) {
+  if (mode.equals("active")) {
+    if (upperLegLengths[legSelect] + upperLegIncrement[legSelect] >= 0)
+      upperLegLengths[legSelect] += upperLegIncrement[legSelect];
+    
+    azimuths[legSelect] += azimuthIncrement[legSelect];
+    
+    elevations[legSelect] += elevationIncrement[legSelect];
+    
+    // TODO: Update other leg angles
+  }
+  else if (mode.equals("passive")) {
+    platPos[0] += platPosIncrement[0];
+    platPos[1] += platPosIncrement[1];
+    platPos[2] += platPosIncrement[2];
+    
+    platRot[0] += platRotIncrement[0];
+    platRot[1] += platRotIncrement[1];
+    platRot[2] += platRotIncrement[2];
+    
+    // TODO: otimizar codigo
+    for (int i = 0; i < 6; i++) {
+      PVector p = new PVector(x[i], y[i], 0);
+      p = rotate3D(p, platRot[0], 0);
+      p = rotate3D(p, platRot[1], 1);
+      p = rotate3D(p, platRot[2], 2);
+      PVector trans = new PVector(platPos[0], platPos[1], platPos[2]);
+      PVector q = p.add(trans);
+      PVector b = new PVector(x[i], y[i], 0);
+      PVector l = q.sub(b);
+      
+      upperLegLengths[i] = l.mag() - LOWER_LEG_HEIGHT - BASE_HEIGHT - JOINT_HEIGHT / 2;  // TODO: checar negativo
+      float[] qArr = q.normalize().array();
+      azimuths[i] = PI - atan2(qArr[0], qArr[1]);
+      elevations[i] = atan2(qArr[2], sqrt(pow(qArr[0], 2) + pow(qArr[1], 2)));
+    }
+  }
+}
+
+PVector rotate3D(PVector vector, float angle, int axis) {
+  PVector ret = vector.copy();
+  float[] pos = vector.array();
+  PVector vector2D;
   
-  azimuths[legSelect] += azimuthIncrement[legSelect];
+  if (axis == 0) {
+    vector2D = new PVector(pos[1], pos[2]);
+    vector2D.rotate(angle);
+    float[] newPos = vector2D.array();
+    ret = new PVector(pos[0], newPos[0], newPos[1]);
+  }
+  else if (axis == 1) {
+    vector2D = new PVector(pos[2], pos[0]);
+    vector2D.rotate(angle);
+    float[] newPos = vector2D.array();
+    ret = new PVector(newPos[1], pos[1], newPos[0]);
+  }
+  else if (axis == 2) {
+    vector2D = new PVector(pos[0], pos[1]);
+    vector2D.rotate(angle);
+    float[] newPos = vector2D.array();
+    ret = new PVector(newPos[0], newPos[1], pos[2]);
+  }
   
-  elevations[legSelect] += elevationIncrement[legSelect];
-  
-  // TODO: Update other leg angles
+  return ret;
 }
 
 void drawLegs(float[] x, float[] y) {
@@ -113,12 +179,22 @@ void drawLegs(float[] x, float[] y) {
 
 void drawLeg(float upperLegLength, float x, float y, float azimuth, float elevation) {
   pushMatrix();
-  translate(x, y, 3 * UNIT + JOINT_INNER_RADIUS);
+  translate(x, y, BASE_HEIGHT + JOINT_INNER_RADIUS);
   rotateZ(azimuth);
   rotateX(PI / 2 - elevation);
   drawCylinder(LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT);
   translate(0, 0, LOWER_LEG_HEIGHT);
   drawCylinder(UPPER_LEG_RADIUS, upperLegLength);
+  popMatrix();
+}
+
+void drawPlatform() {
+  pushMatrix();
+  rotateX(platRot[0]);
+  rotateY(platRot[1]);
+  rotateZ(platRot[2]);
+  translate(platPos[0], platPos[1], platPos[2]);
+  drawCylinder(BASE_RADIUS, BASE_HEIGHT);
   popMatrix();
 }
 
@@ -163,38 +239,84 @@ void keyPressed() {
       camMode++;
   }
   
-  if (key == '1')
-    legSelect = 0;
-  if (key == '2')
-    legSelect = 1;
-  if (key == '3')
-    legSelect = 2;  
-  if (key == '4')
-    legSelect = 3;
-  if (key == '5')
-    legSelect = 4;
-  if (key == '6')
-    legSelect = 5;
-  
-  if (key == 'q') {
-    upperLegIncrement[legSelect] = LENGTH_INCREMENT;
-  }
-  if (key == 'e') {
-    upperLegIncrement[legSelect] = -LENGTH_INCREMENT;
+  if (key == 'm') {
+    if (mode.equals("passive"))
+      mode = "active";
+    else
+      mode = "passive";
   }
   
-  if (key == 'a') {
-    azimuthIncrement[legSelect] = 2 * ANGLE_INCREMENT;
-  }
-  if (key == 'd') {
-    azimuthIncrement[legSelect] = -2 * ANGLE_INCREMENT;
+  if (mode.equals("active")) {
+    if (key == '1')
+      legSelect = 0;
+    if (key == '2')
+      legSelect = 1;
+    if (key == '3')
+      legSelect = 2;  
+    if (key == '4')
+      legSelect = 3;
+    if (key == '5')
+      legSelect = 4;
+    if (key == '6')
+      legSelect = 5;
+    if (key == 'q') {
+      upperLegIncrement[legSelect] = LENGTH_INCREMENT;
+    }
+    if (key == 'e') {
+      upperLegIncrement[legSelect] = -LENGTH_INCREMENT;
+    }
+    if (key == 'a') {
+      azimuthIncrement[legSelect] = 2 * ANGLE_INCREMENT;
+    }
+    if (key == 'd') {
+      azimuthIncrement[legSelect] = -2 * ANGLE_INCREMENT;
+    }
+    if (key == 'w') {
+      elevationIncrement[legSelect] = ANGLE_INCREMENT;
+    }
+    if (key == 's') {
+      elevationIncrement[legSelect] = -ANGLE_INCREMENT;
+    }
   }
   
-  if (key == 'w') {
-    elevationIncrement[legSelect] = ANGLE_INCREMENT;
-  }
-  if (key == 's') {
-    elevationIncrement[legSelect] = -ANGLE_INCREMENT;
+  else if (mode.equals("passive")) {
+    if (key == 'q') {
+      platPosIncrement[2] = LENGTH_INCREMENT;
+    }
+    if (key == 'e') {
+      platPosIncrement[2] = -LENGTH_INCREMENT;
+    }
+    if (key == 'a') {
+      platPosIncrement[1] = LENGTH_INCREMENT;
+    }
+    if (key == 'd') {
+      platPosIncrement[1] = -LENGTH_INCREMENT;
+    }
+    if (key == 'w') {
+      platPosIncrement[0] = LENGTH_INCREMENT;
+    }
+    if (key == 's') {
+      platPosIncrement[0] = -LENGTH_INCREMENT;
+    }
+    
+    if (key == '1') {
+      platRotIncrement[0] = ANGLE_INCREMENT;
+    }
+    if (key == '2') {
+      platRotIncrement[0] = -ANGLE_INCREMENT;
+    }
+    if (key == '3') {
+      platRotIncrement[1] = ANGLE_INCREMENT;
+    }
+    if (key == '4') {
+      platRotIncrement[1] = -ANGLE_INCREMENT;
+    }
+    if (key == '5') {
+      platRotIncrement[2] = ANGLE_INCREMENT;
+    }
+    if (key == '6') {
+      platRotIncrement[2] = -ANGLE_INCREMENT;
+    }
   }
 }
 
@@ -205,4 +327,19 @@ void keyReleased() {
       azimuthIncrement[legSelect] = 0;
     if (key == 'w' || key == 's')
       elevationIncrement[legSelect] = 0;
+      
+      
+    if (key == 'w' || key == 's')
+      platPosIncrement[0] = 0;
+    if (key == 'a' || key == 'd')
+      platPosIncrement[1] = 0;
+    if (key == 'q' || key == 'e')
+      platPosIncrement[2] = 0;
+      
+    if (key == '1' || key == '2')
+      platRotIncrement[0] = 0;
+    if (key == '3' || key == '4')
+      platRotIncrement[1] = 0;
+    if (key == '5' || key == '6')
+      platRotIncrement[2] = 0;
 }
