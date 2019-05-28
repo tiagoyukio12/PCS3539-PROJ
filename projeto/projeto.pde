@@ -1,3 +1,7 @@
+import peasy.*;
+
+PeasyCam cam;
+
 private final float UNIT = 9;
 private final float BASE_RADIUS = 21 * UNIT;
 private final float BASE_HEIGHT = 3 * UNIT;
@@ -51,6 +55,10 @@ void setup() {
   platPos[2] = BASE_HEIGHT + JOINT_HEIGHT / 2 + LOWER_LEG_HEIGHT + upperLegLengths[0];
   
   fullScreen(P3D);
+  
+  cam = new PeasyCam(this, 100);
+  cam.setMinimumDistance(50);
+  cam.setMaximumDistance(500);
 }
 
 void draw() {
@@ -65,6 +73,15 @@ void draw() {
     // Vista dinamica
     camera(60 * UNIT * sin(2 * PI * mouseX / width), 60 * UNIT * cos(2 * PI * mouseX / width), 2.2 * height / 5 - mouseY / 2, 0.0, 0.0, 10 * UNIT, 0, 0, -1);  
   }
+  
+  cam.beginHUD();
+  fill(-1);
+  String hudPlatPos = "Platform Position: [" + String.valueOf(platPos[0]) + ", " + String.valueOf(platPos[1]) + ", " + String.valueOf(platPos[2]) + "]";
+  text(hudPlatPos, width * .8, height * .9);
+  String hudPlatRot = "Platform Rotation: [" + String.valueOf(platRot[0]) + ", " + String.valueOf(platRot[1]) + ", " + String.valueOf(platRot[2]) + "]";
+  text(hudPlatRot, width * .8, height * .8);
+  rect(0, 0, 100, 20);
+  cam.endHUD();
 
   lights();
   fill(255);
