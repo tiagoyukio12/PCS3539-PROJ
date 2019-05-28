@@ -76,10 +76,15 @@ void draw() {
   
   cam.beginHUD();
   fill(-1);
-  String hudPlatPos = "Platform Position: [" + String.valueOf(platPos[0]) + ", " + String.valueOf(platPos[1]) + ", " + String.valueOf(platPos[2]) + "]";
-  text(hudPlatPos, width * .8, height * .9);
-  String hudPlatRot = "Platform Rotation: [" + String.valueOf(platRot[0]) + ", " + String.valueOf(platRot[1]) + ", " + String.valueOf(platRot[2]) + "]";
-  text(hudPlatRot, width * .8, height * .8);
+  String hudPlatPos = String.format("Platform Position: [%.2f, %.2f, %.2f]", platPos[0], platPos[1], platPos[2]);
+  text(hudPlatPos, width * .05, height * .875);
+  String hudPlatRot =  String.format("Platform Rotation: [%.2f, %.2f, %.2f]", platRot[0], platRot[1], platRot[2]);
+  text(hudPlatRot, width * .05, height * .9);
+  for (int i = 0; i < 6; i++) {
+    String hudLeg = String.format("Piston %d:\n\tLength: %.2f, Azimuth: %.2f, Elevation: %.2f", i + 1, upperLegLengths[i], azimuths[i], elevations[i]);
+    text(hudLeg, width * .8, height * .04 * (i + 1));
+  }
+  
   rect(0, 0, 100, 20);
   cam.endHUD();
 
