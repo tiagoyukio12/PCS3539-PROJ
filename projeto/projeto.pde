@@ -10,6 +10,9 @@ private final float UPPER_LEG_RADIUS = 1 * UNIT;
 private final float LENGTH_INCREMENT = 0.5 * UNIT;
 private final float ANGLE_INCREMENT = PI / 360;
 
+float[] x = new float[6];
+float[] y = new float[6];
+
 String mode = "passive";
 int camMode = 1;
 int legSelect = 0;
@@ -27,6 +30,20 @@ float[] platRotIncrement = new float[3];
 
 
 void setup() {
+  x[0] = 15 * UNIT;
+  x[1] = 15 * UNIT;
+  x[2] = - 15 * UNIT * sin(PI / 6) + 5 * UNIT * cos(PI / 6);
+  x[3] = - 15 * UNIT * sin(PI / 6) - 5 * UNIT * cos(PI / 6);
+  x[4] = - 15 * UNIT * sin(PI / 6) - 5 * UNIT * cos(PI / 6);
+  x[5] = - 15 * UNIT * sin(PI / 6) + 5 * UNIT * cos(PI / 6);
+
+  y[0] = 5 * UNIT;
+  y[1] = -5 * UNIT;
+  y[2] = - 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
+  y[3] = - 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
+  y[4] = 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
+  y[5] = 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
+  
   upperLegLengths[0] = 5 * UNIT;
   upperLegLengths[1] = 5 * UNIT;
   upperLegLengths[2] = 5 * UNIT;
@@ -71,23 +88,6 @@ void draw() {
   stroke(155);
   
   drawCylinder(BASE_RADIUS, BASE_HEIGHT);
-  
-  float[] x = new float[6];
-  float[] y = new float[6];
-
-  x[0] = 15 * UNIT;
-  x[1] = 15 * UNIT;
-  x[2] = - 15 * UNIT * sin(PI / 6) + 5 * UNIT * cos(PI / 6);
-  x[3] = - 15 * UNIT * sin(PI / 6) - 5 * UNIT * cos(PI / 6);
-  x[4] = - 15 * UNIT * sin(PI / 6) - 5 * UNIT * cos(PI / 6);
-  x[5] = - 15 * UNIT * sin(PI / 6) + 5 * UNIT * cos(PI / 6);
-
-  y[0] = 5 * UNIT;
-  y[1] = -5 * UNIT;
-  y[2] = - 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
-  y[3] = - 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
-  y[4] = 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
-  y[5] = 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
   
   for (int i = 0; i < 6; i++) {
     pushMatrix();
@@ -189,12 +189,22 @@ void drawLeg(float upperLegLength, float x, float y, float azimuth, float elevat
 }
 
 void drawPlatform() {
-  pushMatrix();
+   pushMatrix();
   rotateX(platRot[0]);
   rotateY(platRot[1]);
   rotateZ(platRot[2]);
   translate(platPos[0], platPos[1], platPos[2]);
   drawCylinder(BASE_RADIUS, BASE_HEIGHT);
+  for (int i = 0; i < 6; i++) {
+    pushMatrix();
+    translate(x[i], y[i], - 2 * UNIT);
+    drawCylinder(JOINT_OUTER_RADIUS, JOINT_HEIGHT);
+    //translate(0, 0, - 2 * UNIT);
+    noStroke();
+    sphere(JOINT_INNER_RADIUS);
+    stroke(155);
+    popMatrix();
+  }
   popMatrix();
 }
 
