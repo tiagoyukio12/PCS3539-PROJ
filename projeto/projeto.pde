@@ -32,6 +32,7 @@ float[] platPosIncrement = new float[3];
 float[] platRot = new float[3];
 float[] platRotIncrement = new float[3];
 
+Sphere sphere;
 
 void setup() {
   x[0] = 15 * UNIT;
@@ -70,6 +71,9 @@ void setup() {
   elevations[5] = PI / 2;
   
   platPos[2] = BASE_HEIGHT + JOINT_HEIGHT / 2 + LOWER_LEG_HEIGHT + upperLegLengths[0];
+  
+  float[] initialPos = {0, 0, 175};
+  sphere = new Sphere(initialPos, 2 * UNIT);
   
   fullScreen(P3D);
   
@@ -131,6 +135,8 @@ void draw() {
   updateParams(x, y);
   drawLegs(x, y);
   drawPlatform();
+  
+  sphere.draw();
 }
 
 void updateParams(float[] x, float[] y) {
