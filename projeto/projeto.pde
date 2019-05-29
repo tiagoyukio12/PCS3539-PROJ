@@ -1,3 +1,7 @@
+import peasy.*;
+
+PeasyCam cam;
+
 private final float UNIT = 9;
 private final float BASE_RADIUS = 21 * UNIT;
 private final float BASE_HEIGHT = 3 * UNIT;
@@ -68,6 +72,10 @@ void setup() {
   platPos[2] = BASE_HEIGHT + JOINT_HEIGHT / 2 + LOWER_LEG_HEIGHT + upperLegLengths[0];
   
   fullScreen(P3D);
+  
+  cam = new PeasyCam(this, 100);
+  cam.setMinimumDistance(50);
+  cam.setMaximumDistance(500);
 }
 
 void draw() {
@@ -80,8 +88,28 @@ void draw() {
     camera(500, 0, 10 * UNIT, 0.0, 0.0, 0.0, 1, 0, 0);
   } else if (camMode == 1) {
     // Vista dinamica
-    camera(60 * UNIT * sin(2 * PI * mouseX / width), 60 * UNIT * cos(2 * PI * mouseX / width), 2.2 * height / 5 - mouseY / 2, 0.0, 0.0, 10 * UNIT, 0, 0, -1);  
+    camera(60 * UNIT * cos(2 * PI * mouseX / width), 60 * UNIT * sin(2 * PI * mouseX / width - PI), 2.2 * height / 5 - mouseY / 2, 0.0, 0.0, 10 * UNIT, 0, 0, -1);  
   }
+  
+  cam.beginHUD();
+  fill(-1);
+  String hudPlatPos = String.format("Platform Position: [%.2f, %.2f, %.2f]", platPos[0], platPos[1], platPos[2]);
+  text(hudPlatPos, width * .05, height * .875);
+  String hudPlatRot =  String.format("Platform Rotation: [%.2f, %.2f, %.2f]", platRot[0], platRot[1], platRot[2]);
+  text(hudPlatRot, width * .05, height * .9);
+  
+  for (int i = 0; i < 6; i++) {
+    String hudLeg = String.format("Piston %d:\n\tLength: %.2f, Azimuth: %.2f, Elevation: %.2f", i + 1, upperLegLengths[i], azimuths[i], elevations[i]);
+    text(hudLeg, width * .8, height * .04 * (i + 1));
+  }
+  String hudCam = "Cam Mode: ";
+  if (camMode == 0) {
+    fill(255, 0, 0);
+    hudCam += "Static";
+  } else
+    hudCam += "Dynamic";
+  text(hudCam, width * .05, height * .04);
+  cam.endHUD();
 
   lights();
   fill(255);
