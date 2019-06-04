@@ -72,8 +72,8 @@ void setup() {
   
   platPos[2] = BASE_HEIGHT + JOINT_HEIGHT / 2 + LOWER_LEG_HEIGHT + upperLegLengths[0];
   
-  float[] initialPos = {0, 0, 175};
-  sphere = new Sphere(initialPos, 2 * UNIT);
+  float[] initialPos = {0, 0, 225};
+  sphere = new Sphere(9.8 * UNIT / frameRate, initialPos, 2.5 * UNIT);
   
   fullScreen(P3D);
   
@@ -136,7 +136,8 @@ void draw() {
   drawLegs(x, y);
   drawPlatform();
   
-  sphere.draw();
+  sphere.updatePosition(platRot);
+  sphere.draw(platPos, platRot);
 }
 
 void updateParams(float[] x, float[] y) {
