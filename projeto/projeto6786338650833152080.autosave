@@ -113,8 +113,6 @@ void draw() {
   } else
     hudCam += "Dynamic";
   text(hudCam, width * .05, height * .04);
-  
-  sphere.drawHUD();
   cam.endHUD();
 
   lights();
@@ -138,7 +136,7 @@ void draw() {
   drawLegs(x, y);
   drawPlatform();
   
-  sphere.updatePosition(platRot);
+  sphere.updatePosition(platPos, platRot);
   sphere.draw(platPos, platRot);
 }
 
