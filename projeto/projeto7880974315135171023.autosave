@@ -11,14 +11,23 @@ private final float LOWER_LEG_RADIUS = 1.5 * UNIT;
 private final float LOWER_LEG_HEIGHT = 10 * UNIT;
 private final float UPPER_LEG_RADIUS = 1 * UNIT;
 private final float LENGTH_INCREMENT = 0.5 * UNIT;
+private final float POS_INCREMENT = 0.1 * UNIT;
 private final float ANGLE_INCREMENT = PI / 360;
 
+
+// Camera
 PeasyCam cam;
 int camMode = 1;
 
-float[] xJoint = new float[6];
-float[] yJoint = new float[6];
+// Modo de controle
+String mode = "passive";
+int legSelect = 0;
 
+// Posicao dos pistoes
+float[] xLeg = new float[6];
+float[] yLeg = new float[6];
+
+// Comprimento e rotacao dos pistoes
 float[] upperLegLengths = new float[6];
 float[] upperLegIncrement = new float[6];
 float[] azimuths = new float[6];
@@ -26,27 +35,40 @@ float[] azimuthIncrement = new float[6];
 float[] elevations = new float[6];
 float[] elevationIncrement = new float[6];
 
+// Posicao e rotacao da plataforma
 float[] platPos = new float[3];
 float[] platPosIncrement = new float[3];
 float[] platRot = new float[3];
 float[] platRotIncrement = new float[3];
 
-Sphere sphere;
+float elevacao = 30 * UNIT;
+float deslocamento_y = 0;
+float deslocamento_x = 0;
+float yaw = 0;
+float pitch = 0;
+float roll = 0;
+
+float del_elevacao;
+float del_deslocamento_y;
+float del_deslocamento_x;
+float del_yaw;
+float del_pitch;
+float del_roll;
 
 void setup() {
-  xJoint[0] = 15 * UNIT;
-  xJoint[1] = 15 * UNIT;
-  xJoint[2] = - 15 * UNIT * sin(PI / 6) + 5 * UNIT * cos(PI / 6);
-  xJoint[3] = - 15 * UNIT * sin(PI / 6) - 5 * UNIT * cos(PI / 6);
-  xJoint[4] = - 15 * UNIT * sin(PI / 6) - 5 * UNIT * cos(PI / 6);
-  xJoint[5] = - 15 * UNIT * sin(PI / 6) + 5 * UNIT * cos(PI / 6);
+  xLeg[0] = 15 * UNIT;
+  xLeg[1] = 15 * UNIT;
+  xLeg[2] = - 15 * UNIT * sin(PI / 6) + 5 * UNIT * cos(PI / 6);
+  xLeg[3] = - 15 * UNIT * sin(PI / 6) - 5 * UNIT * cos(PI / 6);
+  xLeg[4] = - 15 * UNIT * sin(PI / 6) - 5 * UNIT * cos(PI / 6);
+  xLeg[5] = - 15 * UNIT * sin(PI / 6) + 5 * UNIT * cos(PI / 6);
 
-  yJoint[0] = 5 * UNIT;
-  yJoint[1] = - 5 * UNIT;
-  yJoint[2] = - 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
-  yJoint[3] = - 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
-  yJoint[4] = 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
-  yJoint[5] = 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
+  yLeg[0] = 5 * UNIT;
+  yLeg[1] = -5 * UNIT;
+  yLeg[2] = - 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
+  yLeg[3] = - 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
+  yLeg[4] = 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
+  yLeg[5] = 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
 
   upperLegLengths[0] = 5 * UNIT;
   upperLegLengths[1] = 5 * UNIT;
@@ -71,18 +93,12 @@ void setup() {
 
   platPos[2] = BASE_HEIGHT + JOINT_HEIGHT / 2 + LOWER_LEG_HEIGHT + upperLegLengths[0];
 
-  float[] initialPos = {0, 0, 225};
-  float gravity = 9.8 * UNIT / frameRate;
-  float radius = 2.5 * UNIT;
-  sphere = new Sphere(gravity, initialPos, radius);
-
   fullScreen(P3D);
 
   cam = new PeasyCam(this, 100);
   cam.setMinimumDistance(50);
   cam.setMaximumDistance(500);
 }
-
 
 void draw() {
   background(0);
@@ -94,7 +110,7 @@ void draw() {
     camera(500, 0, 10 * UNIT, 0.0, 0.0, 0.0, 1, 0, 0);
   } else if (camMode == 1) {
     // Vista dinamica
-    camera(60*UNIT*cos(2*PI*mouseX/width), 60*UNIT*sin(2*PI*mouseX/width - PI), 2.2*height/5 - mouseY/2, 0.0, 0.0, 10*UNIT, 0, 0, -1);
+    camera(60 * UNIT * cos(2 * PI * mouseX / width), 60 * UNIT * sin(2 * PI * mouseX / width - PI), 2.2 * height / 5 - mouseY / 2, 0.0, 0.0, 10 * UNIT, 0, 0, -1);
   }
 
   cam.beginHUD();
@@ -115,19 +131,20 @@ void draw() {
   } else
     hudCam += "Dynamic";
   text(hudCam, width * .05, height * .04);
-
-  sphere.drawHUD();
   cam.endHUD();
 
   lights();
   fill(255);
   stroke(155);
 
+
+  // Desenha base
   drawCylinder(BASE_RADIUS, BASE_HEIGHT);
 
+  // Desenha ligacoes inferiores
   for (int i = 0; i < 6; i++) {
     pushMatrix();
-    translate(xJoint[i], yJoint[i], 3 * UNIT);
+    translate(xLeg[i], yLeg[i], 3 * UNIT);
     drawCylinder(JOINT_OUTER_RADIUS, JOINT_HEIGHT);
     translate(0, 0, 2 * UNIT);
     noStroke();
@@ -136,17 +153,41 @@ void draw() {
     popMatrix();
   }
 
-  updateParams();
-  drawLegs();
-  drawPlatform();
+  // Movimenta plataforma
+  elevacao = elevacao + del_elevacao;
+  deslocamento_y = deslocamento_y + del_deslocamento_y;
+  deslocamento_x = deslocamento_x + del_deslocamento_x;
+  yaw = yaw + del_yaw;
+  pitch = pitch + del_pitch;
+  roll = roll + del_roll;
+  pushMatrix();
+  translate(deslocamento_x, deslocamento_y, elevacao);
+  rotateX(roll);
+  rotateY(pitch);
+  rotateZ(yaw);
 
-  sphere.updatePosition(platRot);
-  sphere.draw(platPos, platRot);
+  // Desenha plataforma
+  drawCylinder(BASE_RADIUS, BASE_HEIGHT);
+
+  // Desenha ligacoes superiores
+  rotateZ(PI / 3);
+  for (int i = 0; i < 6; i++) {
+    pushMatrix();
+    translate(xLeg[i], yLeg[i], - 2 * UNIT);
+    drawCylinder(JOINT_OUTER_RADIUS, JOINT_HEIGHT);
+    noStroke();
+    sphere(JOINT_INNER_RADIUS);
+    stroke(155);
+    popMatrix();
+  }
+  popMatrix();
+
+  pistao();
 }
 
 
-// Updates legs and platform position and rotation
-void updateParams() {
+// Atualiza parametros 
+void updateParams(float[] x, float[] y) {
   platPos[0] += platPosIncrement[0];
   platPos[1] += platPosIncrement[1];
   platPos[2] += platPosIncrement[2];
@@ -157,13 +198,13 @@ void updateParams() {
 
   // TODO: otimizar codigo
   for (int i = 0; i < 6; i++) {
-    PVector p = new PVector(xJoint[i], yJoint[i], 0);
+    PVector p = new PVector(x[i], y[i], 0);
     p = rotate3D(p, platRot[0], 0);
     p = rotate3D(p, platRot[1], 1);
     p = rotate3D(p, platRot[2], 2);
     PVector trans = new PVector(platPos[0], platPos[1], platPos[2]);
     PVector q = p.add(trans);
-    PVector b = new PVector(xJoint[i], yJoint[i], 0);
+    PVector b = new PVector(x[i], y[i], 0);
     PVector l = q.sub(b);
 
     upperLegLengths[i] = l.mag() - LOWER_LEG_HEIGHT - BASE_HEIGHT - JOINT_HEIGHT / 2;  // TODO: checar negativo
@@ -173,8 +214,6 @@ void updateParams() {
   }
 }
 
-
-// Rotates a vector by an angle [rad] in the given axis
 PVector rotate3D(PVector vector, float angle, int axis) {
   PVector ret = vector.copy();
   float[] pos = vector.array();
@@ -196,38 +235,39 @@ PVector rotate3D(PVector vector, float angle, int axis) {
     float[] newPos = vector2D.array();
     ret = new PVector(newPos[0], newPos[1], pos[2]);
   }
+
   return ret;
 }
 
-
-// Draws the six Stewart Platform legs
-void drawLegs() {
+void drawLegs(float[] x, float[] y) {
   for (int i = 0; i < 6; i++) {
-    pushMatrix();
-    translate(xJoint[i], yJoint[i], BASE_HEIGHT + JOINT_INNER_RADIUS);
-    rotateZ(azimuths[i]);
-    rotateX(PI / 2 - elevations[i]);
-    drawCylinder(LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT);
-    translate(0, 0, LOWER_LEG_HEIGHT);
-    drawCylinder(UPPER_LEG_RADIUS, upperLegLengths[i]);
-    popMatrix();
+    drawLeg(upperLegLengths[i], x[i], y[i], azimuths[i], elevations[i]);
   }
 }
 
+void drawLeg(float upperLegLength, float x, float y, float azimuth, float elevation) {
+  pushMatrix();
+  translate(x, y, BASE_HEIGHT + JOINT_INNER_RADIUS);
+  rotateZ(azimuth);
+  rotateX(PI / 2 - elevation);
+  drawCylinder(LOWER_LEG_RADIUS, LOWER_LEG_HEIGHT);
+  translate(0, 0, LOWER_LEG_HEIGHT);
+  drawCylinder(UPPER_LEG_RADIUS, upperLegLength);
+  popMatrix();
+}
 
 void drawPlatform() {
   pushMatrix();
-  translate(platPos[0], platPos[1], platPos[2]);
   rotateX(platRot[0]);
   rotateY(platRot[1]);
   rotateZ(platRot[2]);
+  translate(platPos[0], platPos[1], platPos[2]);
   drawCylinder(BASE_RADIUS, BASE_HEIGHT);
-
-  // Desenha juncoes
   for (int i = 0; i < 6; i++) {
     pushMatrix();
-    translate(xJoint[i], yJoint[i], - 2 * UNIT);
+    translate(xLeg[i], yLeg[i], - 2 * UNIT);
     drawCylinder(JOINT_OUTER_RADIUS, JOINT_HEIGHT);
+    //translate(0, 0, - 2 * UNIT);
     noStroke();
     sphere(JOINT_INNER_RADIUS);
     stroke(155);
@@ -236,12 +276,53 @@ void drawPlatform() {
   popMatrix();
 }
 
+void pistao() {
+  // bottom
+  pushMatrix();
+  translate(xLeg[0], yLeg[0], 3 * UNIT);
+  beginShape();
+  for (int i = 0; i < 360; i ++) {
+    float x = cos( radians(i)) * JOINT_INNER_RADIUS;
+    float y = sin( radians(i)) * JOINT_INNER_RADIUS;
+    vertex( x, y, 0);
+  }
+  endShape(CLOSE);
+  popMatrix();
+  // top
+  pushMatrix();
+  translate(deslocamento_x, deslocamento_y, elevacao);
+  rotateX(roll);
+  rotateY(pitch);
+  rotateZ(yaw);
+  rotateZ(PI / 3);
+  translate(xLeg[1], yLeg[1], -2 * UNIT);
+  beginShape();
+  for (int i = 0; i < 360; i ++) {
+    float x = cos( radians(i)) * JOINT_INNER_RADIUS;
+    float y = sin( radians(i)) * JOINT_INNER_RADIUS;
+    vertex( x, y, 0);
+  }
+  endShape(CLOSE);
+  popMatrix();
+  pushMatrix();
+  // draw body
+  noStroke();
+  beginShape(TRIANGLE_STRIP);
+  for (int i = 0; i < 360; i++) {
+    float x_i = xLeg[0];
+    float y_i = yLeg[0];
+    float z_i = 5 * UNIT;
+  }
+  endShape(CLOSE);
+  stroke(155);
+  popMatrix();
+}
 
 void drawCylinder(float r, float h)
 {
   int sides = 360;
   float angle = 1;
-  // top
+  // bottom
   beginShape();
   for (int i = 0; i < sides; i++) {
     float x = cos( radians( i * angle ) ) * r;
@@ -249,7 +330,7 @@ void drawCylinder(float r, float h)
     vertex( x, y, 0);
   }
   endShape(CLOSE);
-  // bottom
+  // top
   beginShape();
   for (int i = 0; i < sides; i++) {
     float x = cos( radians( i * angle ) ) * r;
@@ -270,36 +351,39 @@ void drawCylinder(float r, float h)
   stroke(155);
 }
 
-
 void keyPressed() {
-  if (key == 'c')
+
+  // ajuste da câmera
+  if (key == 'c') {
     if (camMode  >= 1)
       camMode = 0;
     else
       camMode++;
+  }
 
-  if (key == 'q') platPosIncrement[2] = LENGTH_INCREMENT;
-  if (key == 'e') platPosIncrement[2] = -LENGTH_INCREMENT;
-  if (key == 'a') platPosIncrement[1] = LENGTH_INCREMENT;
-  if (key == 'd') platPosIncrement[1] = -LENGTH_INCREMENT;
-  if (key == 'w') platPosIncrement[0] = LENGTH_INCREMENT;
-  if (key == 's') platPosIncrement[0] = -LENGTH_INCREMENT;
+  // modo de funcionamento da plataforma
+  if (key == 'w')
+    del_elevacao = POS_INCREMENT;
+  if (key == 's')
+    del_elevacao = -POS_INCREMENT;
+  if (key == 'a') del_deslocamento_x = -POS_INCREMENT;
+  if (key == 'd') del_deslocamento_x = POS_INCREMENT;
+  if (key == 'q') del_deslocamento_y = -POS_INCREMENT;
+  if (key == 'e') del_deslocamento_y = POS_INCREMENT;
 
-  if (key == '1') platRotIncrement[0] = ANGLE_INCREMENT;
-  if (key == '2') platRotIncrement[0] = -ANGLE_INCREMENT;
-  if (key == '3') platRotIncrement[1] = ANGLE_INCREMENT;
-  if (key == '4') platRotIncrement[1] = -ANGLE_INCREMENT;
-  if (key == '5') platRotIncrement[2] = ANGLE_INCREMENT;
-  if (key == '6') platRotIncrement[2] = -ANGLE_INCREMENT;
+  if (key == '1') del_yaw = -ANGLE_INCREMENT;
+  if (key == '2') del_yaw = ANGLE_INCREMENT;
+  if (key == '3') del_pitch = -ANGLE_INCREMENT;
+  if (key == '4') del_pitch = ANGLE_INCREMENT;
+  if (key == '5') del_roll = -ANGLE_INCREMENT;
+  if (key == '6') del_roll = ANGLE_INCREMENT;
 }
 
-
 void keyReleased() {
-  if (key == 'w' || key == 's') platPosIncrement[0] = 0;
-  if (key == 'a' || key == 'd') platPosIncrement[1] = 0;
-  if (key == 'q' || key == 'e') platPosIncrement[2] = 0;
-
-  if (key == '1' || key == '2') platRotIncrement[0] = 0;
-  if (key == '3' || key == '4') platRotIncrement[1] = 0;
-  if (key == '5' || key == '6') platRotIncrement[2] = 0;
+  if (key == 'w' || key == 's') del_elevacao = 0;
+  if (key == 'a' || key == 'd') del_deslocamento_x = 0;
+  if (key == 'q' || key == 'e') del_deslocamento_y = 0;
+  if (key == '1' || key == '2') del_yaw = 0;
+  if (key == '3' || key == '4') del_pitch = 0;
+  if (key == '5' || key == '6') del_roll = 0;
 }
