@@ -278,6 +278,13 @@ void keyPressed() {
     else
       camMode++;
 
+  if (key == 'r') {
+    float[] initialPos = {0, 0, 225};
+    float gravity = 9.8 * UNIT / frameRate;
+    float radius = 2.5 * UNIT;
+    sphere = new Sphere(gravity, initialPos, radius);
+  }
+
   if (key == 'q') platPosIncrement[2] = LENGTH_INCREMENT;
   if (key == 'e') platPosIncrement[2] = -LENGTH_INCREMENT;
   if (key == 'a') platPosIncrement[1] = LENGTH_INCREMENT;
