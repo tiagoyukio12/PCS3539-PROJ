@@ -300,6 +300,45 @@ void keyPressed() {
       camMode++;
 
   if (key == 'r') {
+    xJoint[0] = 15 * UNIT;
+    xJoint[1] = 15 * UNIT;
+    xJoint[2] = - 15 * UNIT * sin(PI / 6) + 5 * UNIT * cos(PI / 6);
+    xJoint[3] = - 15 * UNIT * sin(PI / 6) - 5 * UNIT * cos(PI / 6);
+    xJoint[4] = - 15 * UNIT * sin(PI / 6) - 5 * UNIT * cos(PI / 6);
+    xJoint[5] = - 15 * UNIT * sin(PI / 6) + 5 * UNIT * cos(PI / 6);
+
+    yJoint[0] = 5 * UNIT;
+    yJoint[1] = - 5 * UNIT;
+    yJoint[2] = - 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
+    yJoint[3] = - 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
+    yJoint[4] = 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
+    yJoint[5] = 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
+
+    upperLegLengths[0] = 10 * UNIT;
+    upperLegLengths[1] = 10 * UNIT;
+    upperLegLengths[2] = 10 * UNIT;
+    upperLegLengths[3] = 10 * UNIT;
+    upperLegLengths[4] = 10 * UNIT;
+    upperLegLengths[5] = 10 * UNIT;
+
+    azimuths[0] = 0;
+    azimuths[1] = 0;
+    azimuths[2] = 0;
+    azimuths[3] = 0;
+    azimuths[4] = 0;
+    azimuths[5] = 0;
+
+    elevations[0] = PI / 2;
+    elevations[1] = PI / 2;
+    elevations[2] = PI / 2;
+    elevations[3] = PI / 2;
+    elevations[4] = PI / 2;
+    elevations[5] = PI / 2;
+
+    platPos = new float[3];
+    platPos[2] = BASE_HEIGHT + JOINT_HEIGHT / 2 + LOWER_LEG_HEIGHT + upperLegLengths[0];
+    platRot = new float[3];
+
     float[] initialPos = {0, 0, 225};
     float gravity = 9.8 * UNIT / frameRate;
     float radius = 2.5 * UNIT;
