@@ -13,6 +13,9 @@ private final float UPPER_LEG_RADIUS = 1 * UNIT;
 private final float LENGTH_INCREMENT = 0.5 * UNIT;
 private final float ANGLE_INCREMENT = PI / 360;
 
+private final float MAX_LEG_LENGTH = 15 * UNIT;
+private final float MIN_ELEVATION = PI / 4;
+
 PeasyCam cam;
 int camMode = 1;
 
@@ -48,12 +51,12 @@ void setup() {
   yJoint[4] = 15 * UNIT * cos(PI / 6) - 5 * UNIT * sin(PI / 6);
   yJoint[5] = 15 * UNIT * cos(PI / 6) + 5 * UNIT * sin(PI / 6);
 
-  upperLegLengths[0] = 5 * UNIT;
-  upperLegLengths[1] = 5 * UNIT;
-  upperLegLengths[2] = 5 * UNIT;
-  upperLegLengths[3] = 5 * UNIT;
-  upperLegLengths[4] = 5 * UNIT;
-  upperLegLengths[5] = 5 * UNIT;
+  upperLegLengths[0] = 10 * UNIT;
+  upperLegLengths[1] = 10 * UNIT;
+  upperLegLengths[2] = 10 * UNIT;
+  upperLegLengths[3] = 10 * UNIT;
+  upperLegLengths[4] = 10 * UNIT;
+  upperLegLengths[5] = 10 * UNIT;
 
   azimuths[0] = 0;
   azimuths[1] = 0;
@@ -153,23 +156,41 @@ void updateParams() {
 
   platRot[0] += platRotIncrement[0];
   platRot[1] += platRotIncrement[1];
-  platRot[2] += platRotIncrement[2];
+  platRot[2] += platRotIncrement[2];  
 
-  // TODO: otimizar codigo
+  float[] oldUpperLegLengths = upperLegLengths.clone();
+  float[] oldAzimuths = azimuths.clone();
+  float[] oldElevations = elevations.clone();
+  PVector trans = new PVector(platPos[0], platPos[1], platPos[2]);
   for (int i = 0; i < 6; i++) {
-    PVector p = new PVector(xJoint[i], yJoint[i], 0);
+    PVector p = new PVector(xJoint[i], yJoint[i], -JOINT_HEIGHT);
     p = rotate3D(p, platRot[0], 0);
     p = rotate3D(p, platRot[1], 1);
     p = rotate3D(p, platRot[2], 2);
-    PVector trans = new PVector(platPos[0], platPos[1], platPos[2]);
     PVector q = p.add(trans);
-    PVector b = new PVector(xJoint[i], yJoint[i], 0);
+    PVector b = new PVector(xJoint[i], yJoint[i], BASE_HEIGHT + JOINT_HEIGHT);
     PVector l = q.sub(b);
 
-    upperLegLengths[i] = l.mag() - LOWER_LEG_HEIGHT - BASE_HEIGHT - JOINT_HEIGHT / 2;  // TODO: checar negativo
+    upperLegLengths[i] = l.mag() - LOWER_LEG_HEIGHT;
     float[] qArr = q.normalize().array();
     azimuths[i] = PI - atan2(qArr[0], qArr[1]);
     elevations[i] = atan2(qArr[2], sqrt(pow(qArr[0], 2) + pow(qArr[1], 2)));
+  }
+
+  for (int i = 0; i < 6; i++) {
+    if (upperLegLengths[i] < 0 || upperLegLengths[i] > MAX_LEG_LENGTH || elevations[i] < MIN_ELEVATION) { //<>//
+      platPos[0] -= platPosIncrement[0];
+      platPos[1] -= platPosIncrement[1];
+      platPos[2] -= platPosIncrement[2];
+
+      platRot[0] -= platRotIncrement[0];
+      platRot[1] -= platRotIncrement[1];
+      platRot[2] -= platRotIncrement[2];
+
+      upperLegLengths = oldUpperLegLengths;
+      azimuths = oldAzimuths;
+      elevations = oldElevations;
+    }
   }
 }
 
