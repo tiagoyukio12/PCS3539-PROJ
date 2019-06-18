@@ -224,18 +224,18 @@ void draw() {
       roll = roll + del_roll;
     }
   } else {
-    if (elevacao > 30 * UNIT + 0.5 * POS_INCREMENT) elevacao = elevacao - POS_INCREMENT;
-    else if (elevacao < 30 * UNIT - 0.5 * POS_INCREMENT) elevacao = elevacao + POS_INCREMENT;
-    else if (deslocamento_x > 0.5 * POS_INCREMENT) deslocamento_x = deslocamento_x - POS_INCREMENT;
-    else if (deslocamento_x < -0.5 * POS_INCREMENT) deslocamento_x = deslocamento_x + POS_INCREMENT;
-    else if (deslocamento_y > 0.5 * POS_INCREMENT) deslocamento_y = deslocamento_y - POS_INCREMENT;
-    else if (deslocamento_y < -0.5 * POS_INCREMENT) deslocamento_y = deslocamento_y + POS_INCREMENT;
-    else if (roll > 0.5 * ANGLE_INCREMENT) roll = roll - ANGLE_INCREMENT;
+    if (roll > 0.5 * ANGLE_INCREMENT) roll = roll - ANGLE_INCREMENT;
     else if (roll < -0.5 * ANGLE_INCREMENT) roll = roll + ANGLE_INCREMENT;
     else if (pitch > 0.5 * ANGLE_INCREMENT) pitch = pitch - ANGLE_INCREMENT;
     else if (pitch < -0.5 * ANGLE_INCREMENT) pitch = pitch + ANGLE_INCREMENT;
     else if (yaw > 0.5 * ANGLE_INCREMENT) yaw = yaw - ANGLE_INCREMENT;
     else if (yaw < -0.5 * ANGLE_INCREMENT) yaw = yaw + ANGLE_INCREMENT;
+    else if (elevacao > 30 * UNIT + 0.5 * POS_INCREMENT) elevacao = elevacao - POS_INCREMENT;
+    else if (elevacao < 30 * UNIT - 0.5 * POS_INCREMENT) elevacao = elevacao + POS_INCREMENT;
+    else if (deslocamento_x > 0.5 * POS_INCREMENT) deslocamento_x = deslocamento_x - POS_INCREMENT;
+    else if (deslocamento_x < -0.5 * POS_INCREMENT) deslocamento_x = deslocamento_x + POS_INCREMENT;
+    else if (deslocamento_y > 0.5 * POS_INCREMENT) deslocamento_y = deslocamento_y - POS_INCREMENT;
+    else if (deslocamento_y < -0.5 * POS_INCREMENT) deslocamento_y = deslocamento_y + POS_INCREMENT;
   }
 
   pushMatrix();
